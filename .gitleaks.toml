@@ -1,0 +1,9 @@
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "原版模板文件的 SHA-256 校验和，发布前须与对应文件内容核对"
+condition = "AND"
+paths = ['''(^|/)skills/koubo/upstream\.json$''']
+regexTarget = "line"
+regexes = ['''^\s*"templates/[^"\r\n]+": "[a-f0-9]{64}",?\s*$''']

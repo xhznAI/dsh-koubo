@@ -1,0 +1,116 @@
+{
+  "name": "@nex-assistant/koubo",
+  "version": "0.1.3",
+  "description": "DSH 数字人口播插件，保留原版技能与 Remotion 模板，支持自定义 Grok 视频渠道。",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xhznAI/nex-koubo.git"
+  },
+  "homepage": "https://github.com/xhznAI/nex-koubo#readme",
+  "bugs": {
+    "url": "https://github.com/xhznAI/nex-koubo/issues"
+  },
+  "main": "lib/index.js",
+  "types": "lib/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/types/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./api": {
+      "types": "./lib/types/api/index.d.ts",
+      "default": "./lib/api.js"
+    },
+    "./grok": {
+      "types": "./lib/types/grok.d.ts",
+      "default": "./lib/grok.js"
+    },
+    "./client": {
+      "types": "./lib/types/client/index.d.ts",
+      "default": "./lib/client.js"
+    },
+    "./package.json": "./package.json",
+    "./cordis.patch.yml": "./cordis.patch.yml"
+  },
+  "files": [
+    "lib/**/*.js",
+    "lib/**/*.d.ts",
+    "skills/**",
+    "examples/nex-host.ts",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.md"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-renderer",
+        "@deepseek-ai/dsh-client-ui-settings",
+        "@deepseek-ai/dsh-client-ui-plugin-manager"
+      ]
+    }
+  },
+  "scripts": {
+    "build": "node scripts/clean.mjs && tsc -p tsconfig.build.json && tsdown --config tsdown.config.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.examples.json",
+    "test": "vitest run",
+    "check": "corepack pnpm typecheck && corepack pnpm test && corepack pnpm build",
+    "package:check": "node scripts/check-package.mjs",
+    "templates:test": "corepack pnpm build && node scripts/check-templates.mjs"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "packageManager": "pnpm@11.25.0",
+  "dependencies": {
+    "zod": "^3.25.76"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "4.1.0",
+    "@deepseek-ai/dsh-client-ui-plugin-manager": "0.2.1-rc.5 || 0.2.2-rc.1",
+    "@deepseek-ai/dsh-client-ui-primitives": "0.2.1-rc.5 || 0.2.2-rc.1",
+    "@deepseek-ai/dsh-client-ui-renderer": "0.2.1-rc.5 || 0.2.2-rc.1",
+    "@deepseek-ai/dsh-client-ui-settings": "0.2.1-rc.5 || 0.2.2-rc.1",
+    "@deepseek-ai/dsh-client-ui-slots": "0.2.1-rc.5 || 0.2.2-rc.1",
+    "@deepseek-ai/dsh-fs": "0.2.1-rc.5 || 0.2.2-rc.1",
+    "@deepseek-ai/dsh-sandbox-policy": "0.2.1-rc.5 || 0.2.2-rc.1",
+    "@deepseek-ai/dsh-settings": "0.2.1-rc.5 || 0.2.2-rc.1",
+    "@deepseek-ai/dsh-skill": "0.2.1-rc.5 || 0.2.2-rc.1",
+    "@deepseek-ai/dsh-tools": "0.2.1-rc.5 || 0.2.2-rc.1",
+    "@deepseek-ai/dsh-working-directory": "0.2.1-rc.5 || 0.2.2-rc.1",
+    "@deepseek-ai/schemastery": "3.19.0",
+    "react": ">=18.2.0 <20"
+  },
+  "devDependencies": {
+    "@deepseek-ai/cordis": "4.1.0",
+    "@deepseek-ai/dsh-agent": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-client-ui-plugin-manager": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-client-ui-primitives": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-client-ui-renderer": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-client-ui-settings": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-client-ui-slots": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-fs": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-llm": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-sandbox": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-sandbox-policy": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-session": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-settings": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-skill": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-tools": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-working-directory": "0.2.2-rc.1",
+    "@deepseek-ai/schemastery": "3.19.0",
+    "@types/node": "^24.0.0",
+    "@types/react": "18.3.31",
+    "react": "18.3.1",
+    "tsdown": "0.22.3",
+    "typescript": "6.0.3",
+    "vitest": "^4.1.11"
+  }
+}

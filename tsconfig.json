@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "target": "ES2024", "module": "ESNext", "moduleResolution": "Bundler",
+    "lib": ["ES2024", "DOM", "DOM.Iterable", "ESNext.Disposable"],
+    "strict": true, "noUncheckedIndexedAccess": true, "skipLibCheck": true, "jsx": "react-jsx",
+    "types": ["node"], "declaration": true, "emitDeclarationOnly": true,
+    "rootDir": "src", "outDir": "lib/types"
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx"]
+}

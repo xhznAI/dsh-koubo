@@ -42,6 +42,6 @@ function GrokSettings({ settings }: { settings: ConfigForm<Settings> }) {
 export function apply(ctx: Context): void {
   const settings = ctx.configForms.get<Settings>('koubo');
   ctx.slots.inject('plugins.bundle.config', () => ctx.slots.register({
-    name: 'plugins.bundle.config', key: '@nex-assistant/koubo', inject: () => ({ settings }),
+    name: 'plugins.bundle.config', key: 'dsh-koubo', inject: () => ({ settings }),
   }, GrokSettings));
 }

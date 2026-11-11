@@ -18,12 +18,12 @@ async function command(binary, args, cwd) {
 
 await mkdir(release, { recursive: true });
 await command('corepack', ['pnpm', 'pack', '--pack-destination', release], root);
-const archive = (await readdir(release)).find(file => file === `nex-assistant-koubo-${manifest.version}.tgz`);
+const archive = (await readdir(release)).find(file => file === `dsh-koubo-${manifest.version}.tgz`);
 assert(archive, '缺少当前版本发布包');
 const consumer = await mkdtemp(join(tmpdir(), 'koubo-consumer-'));
 try {
   await writeFile(join(consumer, 'package.json'), JSON.stringify({ private: true, type: 'module', packageManager: manifest.packageManager,
-    dependencies: { '@nex-assistant/koubo': `file:${join(release, archive)}`, '@deepseek-ai/cordis': manifest.peerDependencies['@deepseek-ai/cordis'],
+    dependencies: { 'dsh-koubo': `file:${join(release, archive)}`, '@deepseek-ai/cordis': manifest.peerDependencies['@deepseek-ai/cordis'],
       '@deepseek-ai/schemastery': manifest.peerDependencies['@deepseek-ai/schemastery'] } }));
   await writeFile(join(consumer, 'pnpm-workspace.yaml'), 'autoInstallPeers: false\nstrictPeerDependencies: false\n');
   await command('corepack', ['pnpm', 'install', '--ignore-scripts'], consumer);
@@ -33,11 +33,11 @@ import { access, mkdir, readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Context } from '@deepseek-ai/cordis';
-import * as plugin from '@nex-assistant/koubo';
-import { SourceRegistry, modelSchema } from '@nex-assistant/koubo/api';
-import { GROK_MODEL, createGrokSource } from '@nex-assistant/koubo/grok';
-const packageRoot = dirname(fileURLToPath(import.meta.resolve('@nex-assistant/koubo/package.json')));
-for (const path of ['lib/client.js', 'skills/koubo/templates/lin-169/src/Lin.tsx', 'skills/koubo/templates/huazi-916/src/Huazi.tsx',
+import * as plugin from 'dsh-koubo';
+import { SourceRegistry, modelSchema } from 'dsh-koubo/api';
+import { GROK_MODEL, createGrokSource } from 'dsh-koubo/grok';
+const packageRoot = dirname(fileURLToPath(import.meta.resolve('dsh-koubo/package.json')));
+for (const path of ['lib/client.js', 'locale/en.json', 'locale/zh.json', 'skills/koubo/templates/lin-169/src/Lin.tsx', 'skills/koubo/templates/huazi-916/src/Huazi.tsx',
   'skills/koubo/templates/huazi-916/public/emoji/1f60d.json', 'skills/koubo/UPSTREAM-LICENSE',
   'skills/koubo/scripts/assemble.py', 'skills/koubo/references/workflow.md']) await access(join(packageRoot, path));
 const registry = new SourceRegistry();

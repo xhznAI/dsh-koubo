@@ -1,4 +1,4 @@
 # 插件独立安装，模型来源由宿主按需注册。
 - insert:
     - id: koubo
-      name: '@nex-assistant/koubo'
+      name: 'dsh-koubo'

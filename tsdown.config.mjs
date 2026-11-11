@@ -9,7 +9,7 @@ export default [{
   define: { 'process.env.NODE_ENV': JSON.stringify('production') },
   outputOptions: {
     entryFileNames: 'client.js',
-    banner: 'window.__ModuleLoader__.load({ id: "@nex-assistant/koubo", factory: (require) => {',
+    banner: 'window.__ModuleLoader__.load({ id: "dsh-koubo", factory: (require) => {',
     intro: 'var module = { exports: {} }; var exports = module.exports;',
     footer: 'return module.exports; } });',
   },

@@ -1,5 +1,5 @@
 import type { Context } from '@deepseek-ai/cordis';
-import type { KouboGeneration, KouboModel, KouboSources, KouboTask } from '@nex-assistant/koubo/api';
+import type { KouboGeneration, KouboModel, KouboSources, KouboTask } from 'dsh-koubo/api';
 
 declare module '@deepseek-ai/cordis' { interface Context { kouboSources: KouboSources } }
 

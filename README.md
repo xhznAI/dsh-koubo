@@ -1,4 +1,4 @@
-# Nex Koubo
+# DSH Koubo
 
 [digital-human-koubo](https://github.com/andyhuo520/digital-human-koubo) 的 DSH 插件版。保留原版数字人口播工作流、Remotion 模板、布局、动效和包装组件，通过自定义 Grok 视频渠道生成口播素材。
 
@@ -11,7 +11,9 @@
 
 ## 安装与配置
 
-从 [GitHub Releases](https://github.com/xhznAI/nex-koubo/releases) 下载 `nex-assistant-koubo-0.1.3.tgz`，在 DSH 插件管理中填写下载后的 `.tgz` 安装包路径。支持 **DSH 0.2.1-rc.5 / 0.2.2-rc.1**，运行环境为 **Node.js 24**。
+从 [GitHub Releases](https://github.com/xhznAI/dsh-koubo/releases) 下载 `dsh-koubo-0.1.4.tgz`，在 DSH 插件管理中填写下载后的 `.tgz` 安装包路径。支持 **DSH 0.2.1-rc.5 / 0.2.2-rc.1**，运行环境为 **Node.js 24**。
+
+已安装旧版 `@nex-assistant/koubo` 时，先停用旧插件，再安装新版，避免同时启用两份口播插件。
 
 在插件设置中填写：
 

@@ -1,16 +1,16 @@
 {
-  "name": "@nex-assistant/koubo",
-  "version": "0.1.3",
+  "name": "dsh-koubo",
+  "version": "0.1.4",
   "description": "DSH 数字人口播插件，保留原版技能与 Remotion 模板，支持自定义 Grok 视频渠道。",
   "type": "module",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/xhznAI/nex-koubo.git"
+    "url": "https://github.com/xhznAI/dsh-koubo.git"
   },
-  "homepage": "https://github.com/xhznAI/nex-koubo#readme",
+  "homepage": "https://github.com/xhznAI/dsh-koubo#readme",
   "bugs": {
-    "url": "https://github.com/xhznAI/nex-koubo/issues"
+    "url": "https://github.com/xhznAI/dsh-koubo/issues"
   },
   "main": "lib/index.js",
   "types": "lib/types/index.d.ts",
@@ -32,11 +32,13 @@
       "default": "./lib/client.js"
     },
     "./package.json": "./package.json",
+    "./locale/*": "./locale/*",
     "./cordis.patch.yml": "./cordis.patch.yml"
   },
   "files": [
     "lib/**/*.js",
     "lib/**/*.d.ts",
+    "locale/*.json",
     "skills/**",
     "examples/nex-host.ts",
     "cordis.patch.yml",

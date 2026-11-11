@@ -2,7 +2,7 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "rootDir": ".",
-    "paths": { "@nex-assistant/koubo/api": ["./src/api/index.ts"] }
+    "paths": { "dsh-koubo/api": ["./src/api/index.ts"] }
   },
   "include": ["examples/**/*.ts"]
 }

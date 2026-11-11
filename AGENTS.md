@@ -1,4 +1,4 @@
-# Nex Koubo 开发约定
+# DSH Koubo 开发约定
 
 - 这是独立 DSH 插件，运行时使用 Node.js 24、TypeScript 和 pnpm；通过 `corepack pnpm` 执行脚本。
 - 只使用公开 npm 依赖，不引用 Nex 仓库、DSH 子模块或本机绝对路径。

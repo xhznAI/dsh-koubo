@@ -1,6 +1,6 @@
 {
   "name": "dsh-koubo",
-  "version": "0.1.8",
+  "version": "0.1.11",
   "description": "DSH 数字人口播插件，保留原版技能与 Remotion 模板，支持自定义 Grok 视频渠道。",
   "type": "module",
   "license": "MIT",

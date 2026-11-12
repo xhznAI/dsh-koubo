@@ -1,0 +1,190 @@
+{
+  "title": "同一个数字人，三种口播表达",
+  "language": "普通话",
+  "voice": "成年女性，温暖清晰的普通话，语气自然、自信，语速平稳，无夸张播音腔。三个片段保持同一音色。",
+  "model": "grok-imagine-video-1.5",
+  "resolution": "720p",
+  "cases": [
+    {
+      "id": "lin-explainer",
+      "title": "小林式知识讲解",
+      "template": "lin-169",
+      "aspectRatio": "16:9",
+      "reference": "presenter-landscape.png",
+      "duration": 15,
+      "narration": "一张人物照片，就能开始口播创作。把观点写成讲稿，再搭配重点卡片和人物小窗，让复杂的内容更好懂。",
+      "shots": [
+        {
+          "atPhrase": "一张人物照片",
+          "type": "host",
+          "lower": [
+            "一张照片",
+            "开始口播创作"
+          ]
+        },
+        {
+          "atPhrase": "把观点写成讲稿",
+          "type": "board",
+          "pip": "circle-bl",
+          "title": "从想法到成片",
+          "items": [
+            "人物照片",
+            "讲解稿",
+            "口播视频"
+          ]
+        },
+        {
+          "atPhrase": "再搭配重点卡片",
+          "type": "board",
+          "pip": "circle-bl",
+          "title": "突出要点，留住人物",
+          "big": [
+            "重点卡片",
+            "人物小窗"
+          ]
+        },
+        {
+          "atPhrase": "让复杂的内容",
+          "type": "board",
+          "pip": "rect-r",
+          "big": [
+            "把复杂的事",
+            "讲清楚"
+          ]
+        }
+      ],
+      "keepRanges": [
+        [
+          0,
+          10.67
+        ],
+        [
+          12.24,
+          null
+        ]
+      ]
+    },
+    {
+      "id": "huazi-short",
+      "title": "竖屏花字口播",
+      "template": "huazi-916",
+      "aspectRatio": "9:16",
+      "reference": "presenter-portrait.png",
+      "duration": 15,
+      "narration": "让重点被看见！准备人物和讲稿，加上花字、对比卡片和节奏包装，做出你自己的风格。",
+      "preset": "标准",
+      "keys": [
+        "重点",
+        "人物",
+        "讲稿",
+        "花字",
+        "对比卡片",
+        "节奏包装",
+        "自己的风格"
+      ],
+      "shots": [
+        {
+          "atPhrase": "让重点被看见",
+          "type": "slam",
+          "text": "让重点被看见"
+        },
+        {
+          "atPhrase": "准备人物和讲稿",
+          "type": "tags",
+          "title": "准备好这两样",
+          "items": [
+            "人物",
+            "讲稿"
+          ]
+        },
+        {
+          "atPhrase": "加上花字",
+          "type": "big",
+          "text": "关键词花字",
+          "y": 1220
+        },
+        {
+          "atPhrase": "对比卡片",
+          "type": "vs",
+          "left": "普通讲述",
+          "right": "重点突出"
+        },
+        {
+          "atPhrase": "自己的风格",
+          "type": "stamp",
+          "text": "你的风格"
+        }
+      ],
+      "keepRanges": [
+        [
+          0,
+          6.34
+        ],
+        [
+          7.18,
+          null
+        ]
+      ],
+      "captionPanel": {
+        "top": 1080,
+        "color": "132a27",
+        "accent": "ff7a1a"
+      }
+    },
+    {
+      "id": "data-packaging",
+      "title": "数据包装解说",
+      "template": "packaging",
+      "aspectRatio": "16:9",
+      "reference": "presenter-landscape.png",
+      "duration": 15,
+      "narration": "样式馆里有九十项样式与组件。人物小窗和花字卡片，先看动效，再选样式。做好的视频，还能回到作品库继续编辑。",
+      "shots": [
+        {
+          "atPhrase": "九十项",
+          "use": "NumberSpike",
+          "text": "90",
+          "label": "样式与组件"
+        },
+        {
+          "atPhrase": "人物小窗",
+          "use": "GlassPanel",
+          "title": "按表达方式找到样式",
+          "rows": [
+            {
+              "label": "小林场景与画面包装",
+              "value": 20
+            },
+            {
+              "label": "竖屏花字与强度",
+              "value": 12
+            },
+            {
+              "label": "包装组件与文字高亮",
+              "value": 49
+            }
+          ],
+          "note": "另有 5 种整体风格、4 种人物布局，共 90 项"
+        },
+        {
+          "atPhrase": "先看动效",
+          "use": "ProgressTracker",
+          "steps": [
+            "看动效",
+            "选样式",
+            "做作品"
+          ]
+        },
+        {
+          "atPhrase": "作品库继续编辑",
+          "use": "KeywordStack",
+          "items": [
+            "播放",
+            "下载",
+            "继续编辑"
+          ]
+        }
+      ]
+    }
+  ]
+}

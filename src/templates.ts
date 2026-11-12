@@ -6,14 +6,8 @@ import type { ToolExecution } from '@deepseek-ai/dsh-tools';
 import { outputDirectory } from './files.js';
 
 const skillRoot = fileURLToPath(new URL('../skills/koubo/', import.meta.url));
-export const templates = [
-  { id: 'lin-169', name: '小林式解说', aspectRatio: '16:9', composition: 'Lin' },
-  { id: 'huazi-916', name: '网红花字口播', aspectRatio: '9:16', composition: 'Huazi' },
-  { id: 'reference/launch-169', name: '发布解读', aspectRatio: '16:9', composition: 'Film' },
-  { id: 'reference/tutorial-169', name: '保姆级教程', aspectRatio: '16:9', composition: 'Tutorial' },
-  { id: 'reference/multihost-169', name: '多主播多语言', aspectRatio: '16:9', composition: 'Tutorial' },
-  { id: 'packaging', name: '包装组件库', aspectRatio: '16:9', composition: 'Gallery' },
-] as const;
+import { templates } from './catalog.js';
+export { templates } from './catalog.js';
 
 /** 将原版工程与剪辑脚本放入新目录，保留原有布局、组件及依赖版本。 */
 export async function createTemplate(ctx: Context, exec: ToolExecution, id: string) {

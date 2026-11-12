@@ -1,0 +1,40 @@
+import { mkdtemp, mkdir, writeFile, realpath, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { Context } from '@deepseek-ai/cordis';
+import WebServer from '@deepseek-ai/dsh-host-webserver';
+import { expect, it } from 'vitest';
+import { registerLibraryRoutes } from '../src/routes.js';
+it('Host 路由校验身份、工作区与来源，并流式播放、下载和响应 HEAD', async () => {
+  const cwd = await realpath(await mkdtemp(join(tmpdir(), 'koubo-routes-')));
+  await mkdir(join(cwd, 'video/koubo'), { recursive: true }); await writeFile(join(cwd, 'video/koubo/成片.mp4'), Buffer.from('0123456789'));
+  const ctx = new Context();
+  ctx.provide('connection', { requestRejection: (req: { headers: Record<string, string> }) => req.headers.authorization === 'test' ? undefined : 401 });
+  ctx.provide('fs', { processPathFromHostPath: (path: string) => path });
+  ctx.provide('sessionController', { list: async () => ({ items: [{ sessionId: 'test', cwd }] }) });
+  const fiber = ctx.plugin(WebServer, { host: '127.0.0.1', port: 0 });
+  await fiber.await();
+  await expect.poll(() => ctx.webServer.port).toBeGreaterThan(0);
+  registerLibraryRoutes(ctx);
+  const base = ctx.webServer.getOrigin();
+  const url = `${base}/dsh-koubo/media?sessionId=test&path=${encodeURIComponent('成片.mp4')}`;
+  try {
+    expect((await fetch(`${base}/dsh-koubo-other/library?sessionId=test`, { headers: { authorization: 'test' } })).status).toBe(404);
+    expect((await fetch(url)).status).toBe(401);
+    const poster = `${base}/dsh-koubo/gallery/posters/scene-board.jpg`;
+    expect((await fetch(poster)).status).toBe(401);
+    const preview = await fetch(poster, { headers: { authorization: 'test' } });
+    expect(preview.status).toBe(200); expect(preview.headers.get('content-type')).toBe('image/jpeg');
+    expect((await preview.arrayBuffer()).byteLength).toBeGreaterThan(1000);
+    expect((await fetch(`${base}/dsh-koubo/gallery/posters/missing.jpg`, { headers: { authorization: 'test' } })).status).toBe(404);
+    expect((await fetch(`${base}/dsh-koubo/gallery/%2e%2e%2fpackage.json`, { headers: { authorization: 'test' } })).status).toBe(404);
+    expect((await fetch(url, { headers: { authorization: 'test', origin: 'https://elsewhere.example' } })).status).toBe(403);
+    expect((await fetch(url.replace('sessionId=test', 'sessionId=unknown'), { headers: { authorization: 'test' } })).status).toBe(404);
+    const response = await fetch(url, { headers: { authorization: 'test', range: 'bytes=2-5' } });
+    expect(response.status).toBe(206); expect(response.headers.get('content-range')).toBe('bytes 2-5/10'); expect(await response.text()).toBe('2345');
+    const head = await fetch(url, { method: 'HEAD', headers: { authorization: 'test' } }); expect(head.headers.get('content-length')).toBe('10'); expect(await head.text()).toBe('');
+    const download = await fetch(`${url}&download=1`, { headers: { authorization: 'test' } }); expect(download.headers.get('content-disposition')).toContain('attachment;'); expect(await download.text()).toBe('0123456789');
+    const invalid = await fetch(url, { headers: { authorization: 'test', range: 'bytes=50-' } }); expect(invalid.status).toBe(416); expect(invalid.headers.get('content-range')).toBe('bytes */10');
+    const library = await fetch(`${base}/dsh-koubo/library?sessionId=test`, { headers: { authorization: 'test' } }); expect((await library.json()).items).toHaveLength(1);
+  } finally { await ctx.fiber.dispose(); await rm(cwd, { recursive: true, force: true }); }
+});

@@ -6,6 +6,7 @@ https://github.com/andyhuo520/digital-human-koubo ，代码与文档采用 MIT �
 本项目增加 DSH 插件装载、Grok 渠道配置、生成/查询/下载与工程创建入口；
 assemble.py 的输入改为本地素材路径，make_assets.py 使用独立临时目录，使用文档更新为 DSH 入口。
 不分发原作者的人物形象、声音、演示视频、风格预览或包装图鉴。
+样式馆预览由原版组件代码重新渲染，人物使用本项目新生成的 AI 形象，截图与数据使用中性示例；不包含原作者的媒体素材。预览播放器中的 React、Remotion、GSAP、Lucide、Motion 与地图依赖保留各自许可；world-atlas 数据来自公有领域 Natural Earth。
 
 原项目版权声明与许可如下：
 

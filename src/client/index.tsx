@@ -6,7 +6,11 @@ import type { ConfigForm } from '@deepseek-ai/dsh-client-ui-settings/client';
 import { Button, Input } from '@deepseek-ai/dsh-client-ui-primitives';
 import { saveSettings, type Settings } from './settings.js';
 
-export const inject = ['slots', 'configForms'];
+import type {} from '@deepseek-ai/dsh-client-ui-sidebar/client';
+import { Studio, StudioIcon } from './Studio.js';
+import { STYLES } from './styles.js';
+
+export const inject = ['slots', 'configForms', 'layout', 'sessions', 'conversation', 'uiWorkspace', 'sidebarRight'];
 
 function GrokSettings({ settings }: { settings: ConfigForm<Settings> }) {
   const state = useSyncExternalStore(listener => settings.subscribe(listener), () => settings.getSnapshot());
@@ -40,6 +44,9 @@ function GrokSettings({ settings }: { settings: ConfigForm<Settings> }) {
 }
 
 export function apply(ctx: Context): void {
+  ctx.effect(() => { const style = document.createElement('style'); style.textContent = STYLES; document.head.append(style); return () => style.remove(); });
+  ctx.slots.inject('main', () => ctx.slots.register({ name: 'main', key: 'dsh-koubo' }, () => <Studio ctx={ctx}/>));
+  ctx.slots.inject('sidebar.panellist', () => ctx.slots.register({ name: 'sidebar.panellist', id: 'dsh-koubo', order: 15, label: () => '口播工作室' }, StudioIcon));
   const settings = ctx.configForms.get<Settings>('koubo');
   ctx.slots.inject('plugins.bundle.config', () => ctx.slots.register({
     name: 'plugins.bundle.config', key: 'dsh-koubo', inject: () => ({ settings }),

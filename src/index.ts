@@ -8,12 +8,15 @@ import { TaskRuntime } from './runtime.js';
 import { kouboTools } from './tools.js';
 import { kouboSkill } from './skills.js';
 
+import { registerLibraryRoutes } from './routes.js';
+
 export { Config };
 export const name = 'koubo';
 export const inject = ['tools', 'skills', 'fs', 'workingDirectory', 'sandboxPolicy', 'settings'];
 declare module '@deepseek-ai/cordis' { interface Context { kouboSources: KouboSources } }
 
 export function apply(ctx: Context, config: Config): void {
+  ctx.inject(['webServer', 'connection', 'sessionController'], ctx => registerLibraryRoutes(ctx));
   const registry = new SourceRegistry();
   let current: { baseUrl: string; apiKey: string } | undefined;
   let unregister: (() => void) | undefined;

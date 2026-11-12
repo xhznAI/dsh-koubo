@@ -1,7 +1,7 @@
 {
   "name": "dsh-koubo",
-  "version": "0.1.11",
-  "description": "DSH 数字人口播插件，保留原版技能与 Remotion 模板，支持自定义 Grok 视频渠道。",
+  "version": "0.1.12",
+  "description": "用人物图和讲稿制作口播视频，预览样式并管理成片。",
   "type": "module",
   "license": "MIT",
   "repository": {
@@ -47,7 +47,8 @@
     "THIRD_PARTY_NOTICES.md",
     "assets/readme-cover.png",
     "lib/gallery/**",
-    "assets/gallery/**"
+    "assets/gallery/**",
+    "docs/plugin-detail.md"
   ],
   "dsh": {
     "bundle": {

@@ -1,6 +1,7 @@
 {
   "meta": {
     "title": "DSH Koubo",
-    "description": "Create talking-head videos with Grok and original Remotion templates."
+    "description": "Create talking-head videos from a portrait and script, preview styles, and manage finished videos.",
+    "detail": "docs/plugin-detail.md"
   }
 }

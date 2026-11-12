@@ -11,3 +11,5 @@
 - 修改后运行 `corepack pnpm check`；发布包运行 `corepack pnpm package:check`。测试不得调用付费视频服务。
 - GitHub 直接安装依赖仓库中的 `lib/` 编译产物；源码修改后重新构建并同步提交产物，不添加安装时构建脚本。
 - 公开发布前检查拟发布源码、Git 历史与最终安装包，排除密钥、令牌、真实环境配置、个人绝对路径和测试素材；扫描结果不打印秘密原文，提交身份使用 GitHub 隐私邮箱。
+- 插件内介绍只保留一句功能说明，不嵌入 README、封面或长篇教程；详细安装、配置和开发说明放在仓库文档中。
+- `locale/*.json` 的 `meta.detail` 指向空白的 `docs/plugin-detail.md`，用于关闭宿主的 README 回退；一句话介绍只写在 `meta.description`。

@@ -37,7 +37,7 @@ import * as plugin from 'dsh-koubo';
 import { SourceRegistry, modelSchema } from 'dsh-koubo/api';
 import { GROK_MODEL, createGrokSource } from 'dsh-koubo/grok';
 const packageRoot = dirname(fileURLToPath(import.meta.resolve('dsh-koubo/package.json')));
-for (const path of ['assets/readme-cover.png', 'assets/gallery/avatar.png', 'assets/gallery/posters/pack-Highlight.jpg', 'lib/gallery/index.html', 'lib/gallery/player.js', 'lib/gallery/THIRD_PARTY_LICENSES.txt', 'lib/client.js', 'locale/en.json', 'locale/zh.json', 'skills/koubo/templates/lin-169/src/Lin.tsx', 'skills/koubo/templates/huazi-916/src/Huazi.tsx',
+for (const path of ['assets/icon.svg', 'docs/plugin-detail.md', 'assets/readme-cover.png', 'assets/gallery/avatar.png', 'assets/gallery/posters/pack-Highlight.jpg', 'lib/gallery/index.html', 'lib/gallery/player.js', 'lib/gallery/THIRD_PARTY_LICENSES.txt', 'lib/client.js', 'locale/en.json', 'locale/zh.json', 'skills/koubo/templates/lin-169/src/Lin.tsx', 'skills/koubo/templates/huazi-916/src/Huazi.tsx',
   'skills/koubo/templates/huazi-916/public/emoji/1f60d.json', 'skills/koubo/UPSTREAM-LICENSE',
   'skills/koubo/scripts/assemble.py', 'skills/koubo/references/workflow.md']) await access(join(packageRoot, path));
 const registry = new SourceRegistry();

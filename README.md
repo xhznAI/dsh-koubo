@@ -9,7 +9,7 @@
   <a href="https://github.com/xhznAI/dsh-koubo"><img src="https://img.shields.io/github/package-json/v/xhznAI/dsh-koubo?label=version" alt="当前版本"></a>
   <a href="https://github.com/xhznAI/dsh-koubo/stargazers"><img src="https://img.shields.io/github/stars/xhznAI/dsh-koubo?logo=github" alt="GitHub stars"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT 许可证"></a>
-  <a href="docs/setup.md#支持的环境"><img src="https://img.shields.io/badge/DSH-0.2.2--rc.2-blue" alt="支持 DSH 0.2.2-rc.2，完整版本列表见配置手册"></a>
+  <a href="docs/setup.md#支持的环境"><img src="https://img.shields.io/badge/DSH-%3E%3D0.2.1--rc.5-blue" alt="最低要求 DSH 0.2.1-rc.5"></a>
 </p>
 
 <p align="center">

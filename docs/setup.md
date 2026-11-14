@@ -14,7 +14,7 @@ GitHub 来源安装主分支的当前版本，仓库已包含编译文件，无�
 
 ## 支持的环境
 
-- DSH：`0.2.1-rc.5`、`0.2.2-rc.1`、`0.2.2-rc.2`。
+- DSH：`0.2.1-rc.5` 或更高版本，仅限制最低版本。
 - Node.js：24 或更高版本；使用 DSH Desktop 时由桌面应用管理运行环境。
 - 界面运行于 DSH Web / Desktop；README 实机截图来自 macOS Desktop。
 

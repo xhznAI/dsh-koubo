@@ -1,6 +1,6 @@
 {
   "name": "dsh-koubo",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "description": "用人物图和讲稿制作口播视频，预览样式并管理成片。",
   "type": "module",
   "license": "MIT",

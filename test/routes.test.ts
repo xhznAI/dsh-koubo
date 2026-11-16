@@ -1,4 +1,4 @@
-import { mkdtemp, mkdir, writeFile, realpath, rm } from 'node:fs/promises';
+import { mkdtemp, mkdir, writeFile, realpath, rm, readFile, rename } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { Context } from '@deepseek-ai/cordis';
@@ -36,5 +36,52 @@ it('Host 路由校验身份、工作区与来源，并流式播放、下载和�
     const download = await fetch(`${url}&download=1`, { headers: { authorization: 'test' } }); expect(download.headers.get('content-disposition')).toContain('attachment;'); expect(await download.text()).toBe('0123456789');
     const invalid = await fetch(url, { headers: { authorization: 'test', range: 'bytes=50-' } }); expect(invalid.status).toBe(416); expect(invalid.headers.get('content-range')).toBe('bytes */10');
     const library = await fetch(`${base}/dsh-koubo/library?sessionId=test`, { headers: { authorization: 'test' } }); expect((await library.json()).items).toHaveLength(1);
+  } finally { await ctx.fiber.dispose(); await rm(cwd, { recursive: true, force: true }); }
+});
+
+it('形象引用跨工作区可用，移除不删原图，并保护上传策略和引用读取', async () => {
+  const cwd = await realpath(await mkdtemp(join(tmpdir(), 'koubo-avatar-routes-')));
+  const other = join(cwd, 'other'); await mkdir(other);
+  const ctx = new Context(); let readOnly = true;
+  const session = { id: 'test' };
+  ctx.provide('connection', { requestRejection: (req: { headers: Record<string, string> }) => req.headers.authorization === 'test' ? undefined : 401 });
+  ctx.provide('fs', { processPathFromHostPath: (path: string) => path });
+  ctx.provide('workingDirectory', { get: () => cwd });
+  ctx.provide('sandboxPolicy', { resolve: () => ({ mode: readOnly ? 'read-only' : 'workspace-write', workspaceRoot: cwd }) });
+  ctx.provide('sessionController', { list: async () => ({ items: [{ sessionId: 'test', cwd }, { sessionId: 'other', cwd: other }] }), resolveAgent: async () => ({ agent: { session } }) });
+  const fiber = ctx.plugin(WebServer, { host: '127.0.0.1', port: 0 }); await fiber.await();
+  await expect.poll(() => ctx.webServer.port).toBeGreaterThan(0); registerLibraryRoutes(ctx);
+  const base = ctx.webServer.getOrigin(), url = `${base}/dsh-koubo/avatars?sessionId=test`;
+  const png = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
+  const body = { name: '我的数字人', image: `data:image/png;base64,${png}`, imagePrompt: '正面人物图', favorite: true };
+  const request = (method: string, value: unknown, extra: Record<string, string> = {}) => fetch(url, { method, headers: { authorization: 'test', 'content-type': 'application/json', ...extra }, body: JSON.stringify(value) });
+  try {
+    expect((await fetch(url)).status).toBe(401);
+    expect((await request('POST', body, { origin: 'https://elsewhere.example' })).status).toBe(403);
+    expect((await request('POST', body)).status).toBe(403);
+    expect((await fetch(url, { headers: { authorization: 'test' } }).then(response => response.json())).items).toEqual([]);
+    readOnly = false;
+    const created = await request('POST', body); expect(created.status).toBe(201);
+    const item = await created.json();
+    const imageUrl = `${base}/dsh-koubo/avatar-image?id=${item.id}`;
+    expect((await fetch(imageUrl)).status).toBe(401);
+    expect((await fetch(imageUrl.replace(item.id, '0'.repeat(64)), { headers: { authorization: 'test' } })).status).toBe(404);
+    const image = await fetch(imageUrl, { headers: { authorization: 'test' } }); expect(image.status).toBe(200); expect(image.headers.get('content-type')).toBe('image/png'); expect(Buffer.from(await image.arrayBuffer())).toEqual(Buffer.from(png, 'base64'));
+    const details = { name: item.name, imagePrompt: item.imagePrompt, favorite: false, id: item.id, updatedAt: item.updatedAt };
+    const changed = await request('PATCH', details); expect(changed.status).toBe(200); const next = await changed.json();
+    expect((await request('PATCH', details)).status).toBe(409);
+    expect((await fetch(url, { headers: { authorization: 'test' } }).then(response => response.json())).items[0]).toMatchObject({ favorite: false, imagePrompt: '正面人物图' });
+    const switched = await fetch(url.replace('sessionId=test', 'sessionId=other'), { headers: { authorization: 'test' } }).then(response => response.json());
+    expect(switched.items).toHaveLength(1); expect(switched.items[0].imagePath).toBe(item.imagePath);
+    const select = () => fetch(`${base}/dsh-koubo/avatar-use`, { method: 'POST', headers: { authorization: 'test', 'content-type': 'application/json' }, body: JSON.stringify({ id: item.id }) });
+    expect((await select().then(response => response.json())).imagePath).toBe(item.imagePath);
+    await rename(item.imagePath, item.imagePath + '.moved'); expect((await select()).status).toBe(410); await rename(item.imagePath + '.moved', item.imagePath);
+    expect((await request('POST', { ...body, image: 'data:image/png;base64,PHN2Zz48L3N2Zz4=' })).status).toBe(400);
+    readOnly = true; expect((await request('DELETE', { id: item.id, updatedAt: next.updatedAt })).status).toBe(204);
+    expect((await fetch(imageUrl, { headers: { authorization: 'test' } })).status).toBe(404);
+    expect(await readFile(item.imagePath)).toEqual(Buffer.from(png, 'base64'));
+    expect((await fetch(url, { headers: { authorization: 'test' } }).then(response => response.json())).items).toEqual([]);
+    const linked = await request('POST', { name: '重新引用', imagePath: item.imagePath, imagePrompt: '', favorite: true }); expect(linked.status).toBe(201);
+    expect((await fetch(url.replace('sessionId=test', 'sessionId=other'), { headers: { authorization: 'test' } }).then(response => response.json())).items[0].name).toBe('重新引用');
   } finally { await ctx.fiber.dispose(); await rm(cwd, { recursive: true, force: true }); }
 });

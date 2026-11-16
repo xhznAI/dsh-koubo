@@ -1,16 +1,38 @@
 import { constants } from 'node:fs';
 import { open, readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
-import { join } from 'node:path';
+import { basename, dirname, join } from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import type { Context } from '@deepseek-ai/cordis';
+import type { IncomingMessage } from 'node:http';
+import type { ToolExecution } from '@deepseek-ai/dsh-tools';
+import { ZodError, z } from 'zod';
 import type {} from '@deepseek-ai/dsh-host-webserver';
 import type {} from '@deepseek-ai/dsh-client-connection';
 import type {} from '@deepseek-ai/dsh-api-session-controller';
 import { byteRange, LibraryError, libraryRoot, readLibrary, resolveVideo, videoType } from './library.js';
 import { galleryStyles } from './gallery.js';
+import { avatarImage, avatarRoot, importAvatar } from './avatars.js';
+import { outputDirectory } from './files.js';
+import { AvatarReferences, avatarReferenceId, avatarReferenceLink } from './avatar-references.js';
+import type { AvatarReference } from './avatar-catalog.js';
 
-export function registerLibraryRoutes(ctx: Context, packageRoot = fileURLToPath(new URL('../', import.meta.url))): void {
+async function requestJson(req: IncomingMessage, signal: AbortSignal, limit: number): Promise<unknown> {
+  if (req.headers['content-type']?.split(';')[0]?.trim() !== 'application/json') throw new LibraryError(415, '请使用 JSON 上传素材。');
+  if (Number(req.headers['content-length']) > limit) throw new LibraryError(413, '上传内容过大。');
+  const chunks: Buffer[] = []; let bytes = 0;
+  for await (const chunk of req) {
+    signal.throwIfAborted();
+    bytes += chunk.length;
+    if (bytes > limit) throw new LibraryError(413, '上传内容过大。');
+    chunks.push(Buffer.from(chunk));
+  }
+  try { return JSON.parse(Buffer.concat(chunks).toString('utf8')); } catch { throw new LibraryError(400, '素材信息无效。'); }
+}
+
+export function registerLibraryRoutes(ctx: Context, packageRoot = fileURLToPath(new URL('../', import.meta.url)), savedReferences?: AvatarReferences): void {
+  let memory: AvatarReference[] = [];
+  const references = savedReferences ?? new AvatarReferences(() => memory, async items => { memory = items; });
   ctx.effect(() => ctx.webServer.register({ kind: 'prefix', path: '/dsh-koubo', async handler(req, res) {
     const abort = new AbortController();
     const close = () => { if (!res.writableEnded) abort.abort(); };
@@ -20,8 +42,10 @@ export function registerLibraryRoutes(ctx: Context, packageRoot = fileURLToPath(
       const rejection = ctx.connection.requestRejection(req);
       if (rejection !== undefined) { res.statusCode = rejection; res.end(); return; }
       if (req.headers['sec-fetch-site'] === 'cross-site' || (req.headers.origin && new URL(req.headers.origin).host !== req.headers.host)) throw new LibraryError(403, '请求来源无效。');
-      if (req.method !== 'GET' && req.method !== 'HEAD') { res.setHeader('allow', 'GET, HEAD'); throw new LibraryError(405, '请求方法无效。'); }
       const url = new URL(req.url ?? '/', 'http://localhost');
+      const avatars = url.pathname === '/dsh-koubo/avatars';
+      const allowed = avatars ? ['GET', 'HEAD', 'POST', 'PATCH', 'DELETE'] : url.pathname === '/dsh-koubo/avatar-use' ? ['POST'] : ['GET', 'HEAD'];
+      if (!allowed.includes(req.method ?? '')) { res.setHeader('allow', allowed.join(', ')); throw new LibraryError(405, '请求方法无效。'); }
       if (url.pathname.startsWith('/dsh-koubo/gallery/')) {
         const name = url.pathname.slice('/dsh-koubo/gallery/'.length);
         const poster = galleryStyles.find(item => name === `posters/${item.id}.jpg`);
@@ -33,12 +57,52 @@ export function registerLibraryRoutes(ctx: Context, packageRoot = fileURLToPath(
         res.setHeader('content-security-policy', "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; frame-ancestors 'self'");
         res.end(req.method === 'HEAD' ? undefined : body); return;
       }
-      if (!['/dsh-koubo/library', '/dsh-koubo/media'].includes(url.pathname)) throw new LibraryError(404, '未找到。');
+      if (!['/dsh-koubo/library', '/dsh-koubo/media', '/dsh-koubo/avatars', '/dsh-koubo/avatar-image', '/dsh-koubo/avatar-use'].includes(url.pathname)) throw new LibraryError(404, '未找到。');
+      if (url.pathname === '/dsh-koubo/avatar-image' || url.pathname === '/dsh-koubo/avatar-use') {
+        const id = url.pathname.endsWith('avatar-use') ? z.object({ id: avatarReferenceId }).strict().parse(await requestJson(req, abort.signal, 1024)).id : avatarReferenceId.parse(url.searchParams.get('id'));
+        const item = await references.get(id);
+        if (!item.available) throw new LibraryError(410, '原图片已移动或删除，请重新添加形象引用。');
+        if (url.pathname.endsWith('avatar-use')) { res.setHeader('content-type', 'application/json; charset=utf-8'); res.end(JSON.stringify(item)); return; }
+        const image = await avatarImage(dirname(item.imagePath), basename(item.imagePath));
+        res.setHeader('content-type', image.mime); res.setHeader('content-length', image.bytes.length);
+        res.setHeader('content-security-policy', "default-src 'none'; sandbox");
+        res.end(req.method === 'HEAD' ? undefined : image.bytes); return;
+      }
+      if (avatars && (req.method === 'PATCH' || req.method === 'DELETE')) {
+        const value = await requestJson(req, abort.signal, 32 * 1024);
+        if (req.method === 'DELETE') { await references.remove(value, abort.signal); res.statusCode = 204; res.end(); }
+        else { res.setHeader('content-type', 'application/json; charset=utf-8'); res.end(JSON.stringify(await references.update(value, abort.signal))); }
+        return;
+      }
       const sessionId = url.searchParams.get('sessionId');
+      if (avatars && !sessionId && (req.method === 'GET' || req.method === 'HEAD')) {
+        const data = await references.refresh(undefined, abort.signal);
+        res.setHeader('content-type', 'application/json; charset=utf-8'); res.end(req.method === 'HEAD' ? undefined : JSON.stringify(data)); return;
+      }
       if (!sessionId || sessionId.length > 200) throw new LibraryError(400, '请先打开工作区对话。');
       const { items } = await ctx.sessionController.list({}, abort.signal);
       const session = items.find(item => item.sessionId === sessionId);
       if (!session || !session.cwd || ctx.fs.processPathFromHostPath(session.cwd) !== session.cwd) throw new LibraryError(404, '本地工作区不可用。');
+      if (avatars) {
+        if (avatars && (req.method === 'GET' || req.method === 'HEAD')) {
+          const data = await references.refresh(session.cwd, abort.signal);
+          res.setHeader('content-type', 'application/json; charset=utf-8');
+          res.end(req.method === 'HEAD' ? undefined : JSON.stringify(data)); return;
+        }
+        const value = await requestJson(req, abort.signal, 15 * 1024 * 1024);
+        if (avatarReferenceLink.safeParse(value).success) {
+          const result = await references.link(value, session.cwd, abort.signal);
+          res.statusCode = 201; res.setHeader('content-type', 'application/json; charset=utf-8'); res.end(JSON.stringify(result)); return;
+        }
+        const live = await ctx.sessionController.resolveAgent(sessionId as never);
+        if ('error' in live || ctx.workingDirectory.get(live.agent.session) !== session.cwd) throw new LibraryError(409, '工作区已变化，请重新打开对话。');
+        try { await outputDirectory(ctx, { agent: live.agent, signal: abort.signal } as ToolExecution); }
+        catch { throw new LibraryError(403, '当前工作区不允许保存或修改形象。'); }
+        const root = await avatarRoot(session.cwd, true);
+        if (!root) throw new LibraryError(404, '形象不存在。');
+        const result = await references.add(root, await importAvatar(root, value, abort.signal), abort.signal); res.statusCode = 201;
+        res.setHeader('content-type', 'application/json; charset=utf-8'); res.end(JSON.stringify(result)); return;
+      }
       if (url.pathname === '/dsh-koubo/library') {
         const library = await readLibrary(session.cwd, abort.signal);
         res.setHeader('content-type', 'application/json; charset=utf-8');
@@ -66,9 +130,9 @@ export function registerLibraryRoutes(ctx: Context, packageRoot = fileURLToPath(
     } catch (error) {
       if (res.headersSent) { res.destroy(); return; }
       res.removeHeader('content-length');
-      res.statusCode = error instanceof LibraryError ? error.status : (error as NodeJS.ErrnoException).code === 'ENOENT' ? 404 : 503;
+      res.statusCode = error instanceof LibraryError ? error.status : error instanceof ZodError ? 400 : (error as NodeJS.ErrnoException).code === 'ENOENT' ? 404 : 503;
       res.setHeader('content-type', 'application/json; charset=utf-8');
-      res.end(req.method === 'HEAD' ? undefined : JSON.stringify({ message: error instanceof LibraryError ? error.message : '无法读取作品，请刷新重试。' }));
+      res.end(req.method === 'HEAD' ? undefined : JSON.stringify({ message: error instanceof LibraryError ? error.message : error instanceof ZodError ? '请检查人物名称、提示词和素材信息。' : '无法处理口播素材，请刷新重试。' }));
     } finally { res.off('close', close); }
   } }));
 }

@@ -9,6 +9,7 @@ import { kouboTools } from './tools.js';
 import { kouboSkill } from './skills.js';
 
 import { registerLibraryRoutes } from './routes.js';
+import { AvatarReferences } from './avatar-references.js';
 
 export { Config };
 export const name = 'koubo';
@@ -16,7 +17,9 @@ export const inject = ['tools', 'skills', 'fs', 'workingDirectory', 'sandboxPoli
 declare module '@deepseek-ai/cordis' { interface Context { kouboSources: KouboSources } }
 
 export function apply(ctx: Context, config: Config): void {
-  ctx.inject(['webServer', 'connection', 'sessionController'], ctx => registerLibraryRoutes(ctx));
+  ctx.effect(() => ctx.settings.configure({ auto: false }, ctx.fiber));
+  const avatars = new AvatarReferences(() => config.avatarReferences.get(), items => ctx.settings.update('koubo', { avatarReferences: items }));
+  ctx.inject(['webServer', 'connection', 'sessionController'], ctx => registerLibraryRoutes(ctx, undefined, avatars));
   const registry = new SourceRegistry();
   let current: { baseUrl: string; apiKey: string } | undefined;
   let unregister: (() => void) | undefined;

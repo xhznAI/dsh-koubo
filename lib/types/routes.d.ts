@@ -1,2 +1,3 @@
 import type { Context } from '@deepseek-ai/cordis';
-export declare function registerLibraryRoutes(ctx: Context, packageRoot?: string): void;
+import { AvatarReferences } from './avatar-references.js';
+export declare function registerLibraryRoutes(ctx: Context, packageRoot?: string, savedReferences?: AvatarReferences): void;

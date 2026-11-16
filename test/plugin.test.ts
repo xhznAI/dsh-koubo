@@ -9,7 +9,8 @@ it('可由公开 Cordis 装载，提供原版技能和六个工具，并允许�
   const ctx = new Context(), tools: ToolDefinition[] = [], providers: (() => SkillProvider)[] = [];
   ctx.provide('tools', { register: (tool: ToolDefinition) => { tools.push(tool); } });
   ctx.provide('skills', { registerProvider: (provider: () => SkillProvider) => { providers.push(provider); } });
-  for (const name of ['fs', 'workingDirectory', 'sandboxPolicy', 'settings']) ctx.provide(name, {});
+  for (const name of ['fs', 'workingDirectory', 'sandboxPolicy']) ctx.provide(name, {});
+  ctx.provide('settings', { configure: () => () => undefined });
   const fiber = ctx.plugin(plugin, { baseUrl: 'https://video.example', apiKey: '' });
   try {
     await expect.poll(() => tools.length).toBe(6);
@@ -34,11 +35,13 @@ it('在 DSH 中修改渠道后立即生效，换来源不复用旧连接，也�
   const ctx = new Context();
   ctx.provide('tools', { register: () => undefined });
   ctx.provide('skills', { registerProvider: () => undefined });
-  for (const name of ['fs', 'workingDirectory', 'sandboxPolicy', 'settings']) ctx.provide(name, {});
+  for (const name of ['fs', 'workingDirectory', 'sandboxPolicy']) ctx.provide(name, {});
+  ctx.provide('settings', { configure: () => () => undefined });
   let values = { baseUrl: 'https://first.example', apiKey: '' };
   // 宿主保存表单后保留配置引用，下一次读取返回新值。
   const fiber = ctx.plugin({ inject: plugin.inject, apply: (child: Context) => plugin.apply(child, {
     baseUrl: { get: () => values.baseUrl }, apiKey: { get: () => values.apiKey },
+    avatarReferences: { get: () => [] },
   }) });
   try {
     await fiber.await();

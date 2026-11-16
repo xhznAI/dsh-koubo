@@ -5,6 +5,8 @@ import type {} from '@deepseek-ai/dsh-client-ui-sidebar-right/client';
 import { templates, type Library, type LibraryItem } from '../catalog.js';
 import { Gallery } from './Gallery.js';
 import { currentConversation, preparePrompt } from './navigation.js';
+import { Avatars } from './Avatars.js';
+import { useAvatars } from './avatar-store.js';
 
 export function StudioIcon({ size = 20 }: { size?: number }) {
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="4"/><path d="m10 9 5 3-5 3Z"/><path d="M7 4v3m10-3v3M7 17v3m10-3v3"/></svg>;
@@ -76,7 +78,14 @@ function LibraryView({ ctx, sessionId, cwd, prompt }: { ctx: Context; sessionId?
 export function Studio({ ctx }: { ctx: Context }) {
   const sessions = ctx.sessions as unknown as ISessions;
   const state = useSyncExternalStore<SessionListState>(sessions.list.subscribe, sessions.list.getSnapshot), session = currentConversation(state);
-  const [tab, setTab] = useState<'styles' | 'library'>('styles'), [notice, setNotice] = useState('');
+  const [tab, setTab] = useState<'styles' | 'avatars' | 'library'>('styles'), [notice, setNotice] = useState('');
+  const scope = JSON.stringify([session?.id, session?.cwd]), avatars = useAvatars(session?.id, session?.cwd);
+  const main = useRef<HTMLElement>(null);
+  useEffect(() => { main.current?.scrollTo(0, 0); }, [tab]);
   const prompt = (text: string) => { try { preparePrompt(ctx, text); setNotice(''); } catch (error) { setNotice(error instanceof Error ? error.message : '无法打开对话。'); } };
-  return <section className="kb-studio"><header data-window-drag><div className="kb-brand"><span><StudioIcon size={25}/></span><div><h1>口播工作室</h1><p>从灵感样式，到你的下一部作品</p></div></div><button onClick={() => ctx.layout.selectPanel(null)}>返回对话 ↗</button></header><nav aria-label="口播工作室"><button aria-current={tab === 'styles' ? 'page' : undefined} onClick={() => { setTab('styles'); setNotice(''); }}>样式馆</button><button aria-current={tab === 'library' ? 'page' : undefined} onClick={() => { setTab('library'); setNotice(''); }}>作品库</button></nav><main>{notice && <p role="alert">{notice}</p>}{tab === 'styles' ? <Gallery prompt={prompt}/> : <LibraryView ctx={ctx} sessionId={session?.id} cwd={session?.cwd} prompt={prompt}/>}</main></section>;
+  return <section className="kb-studio"><header data-window-drag><div className="kb-brand"><span><StudioIcon size={25}/></span><div><h1>口播工作室</h1><p>从灵感样式，到你的下一部作品</p></div></div><button onClick={() => ctx.layout.selectPanel(null)}>返回对话 ↗</button></header><nav aria-label="口播工作室">{([['styles', '样式馆'], ['avatars', '形象'], ['library', '作品库']] as const).map(([id, label]) => <button key={id} aria-current={tab === id ? 'page' : undefined} onClick={() => { setTab(id); setNotice(''); }}>{label}</button>)}</nav><main ref={main}>{notice && <p role="alert">{notice}</p>}
+    {tab === 'styles' && <Gallery prompt={prompt}/>}
+    {tab === 'avatars' && <Avatars key={scope} sessionId={session?.id} store={avatars} prompt={prompt}/>}
+    {tab === 'library' && <LibraryView ctx={ctx} sessionId={session?.id} cwd={session?.cwd} prompt={prompt}/>}
+  </main></section>;
 }

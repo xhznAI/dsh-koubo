@@ -52,7 +52,7 @@ await mkdir(workspace);
 ctx.provide('fs', { processPathFromHostPath: path => path });
 ctx.provide('workingDirectory', { get: () => workspace });
 ctx.provide('sandboxPolicy', { resolve: () => ({ mode: 'workspace-write', workspaceRoot: workspace }) });
-ctx.provide('settings', {});
+ctx.provide('settings', { configure: () => () => undefined });
 const fiber = ctx.plugin(plugin, { baseUrl: 'https://api.example', apiKey: '' });
 try {
   await new Promise(resolve => setTimeout(resolve, 20));

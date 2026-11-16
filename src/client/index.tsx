@@ -1,7 +1,6 @@
 import { useState, useSyncExternalStore } from 'react';
 import type { Context } from '@deepseek-ai/cordis';
 import type {} from '@deepseek-ai/dsh-client-ui-renderer/client';
-import type {} from '@deepseek-ai/dsh-client-ui-plugin-manager/client';
 import type { ConfigForm } from '@deepseek-ai/dsh-client-ui-settings/client';
 import { Button, Input } from '@deepseek-ai/dsh-client-ui-primitives';
 import { saveSettings, type Settings } from './settings.js';
@@ -20,7 +19,7 @@ function GrokSettings({ settings }: { settings: ConfigForm<Settings> }) {
   const [message, setMessage] = useState('');
   const baseUrl = draftUrl ?? state.value?.baseUrl ?? '';
   const disabled = state.status !== 'ready' || !state.writable || busy;
-  return <form aria-label="Grok 视频渠道" style={{ display: 'grid', gap: 16, maxWidth: 580 }} onSubmit={async event => {
+  return <form aria-label="Grok 视频渠道" className="kb-koubo-settings" style={{ display: 'grid', gap: 16, maxWidth: 580 }} onSubmit={async event => {
     event.preventDefault(); setBusy(true); setMessage('');
     try {
       if (await saveSettings(settings, baseUrl, apiKey)) { setKey(''); setUrl(undefined); setMessage('已保存'); }
@@ -28,6 +27,7 @@ function GrokSettings({ settings }: { settings: ConfigForm<Settings> }) {
     } catch { setMessage('保存失败，请检查 API 地址后重试。'); }
     finally { setBusy(false); }
   }}>
+    <div><h2 style={{ margin: 0, fontSize: 18 }}>视频生成服务</h2><p style={{ margin: '8px 0 0', fontSize: 12, color: 'var(--dsw-alias-label-secondary)' }}>设置口播视频使用的 Grok 或兼容渠道。</p></div>
     <label style={{ display: 'grid', gap: 8 }}>Base URL
       <Input aria-label="Grok Base URL" value={baseUrl} onChange={event => { setUrl(event.target.value); setMessage(''); }}
         disabled={disabled} placeholder="https://api.x.ai" autoComplete="off" spellCheck={false} />
@@ -48,7 +48,8 @@ export function apply(ctx: Context): void {
   ctx.slots.inject('main', () => ctx.slots.register({ name: 'main', key: 'dsh-koubo' }, () => <Studio ctx={ctx}/>));
   ctx.slots.inject('sidebar.panellist', () => ctx.slots.register({ name: 'sidebar.panellist', id: 'dsh-koubo', order: 15, label: () => '口播工作室' }, StudioIcon));
   const settings = ctx.configForms.get<Settings>('koubo');
-  ctx.slots.inject('plugins.bundle.config', () => ctx.slots.register({
-    name: 'plugins.bundle.config', key: 'dsh-koubo', inject: () => ({ settings }),
+  ctx.slots.inject('settings.section', () => ctx.slots.register({
+    name: 'settings.section', id: 'dsh-koubo', label: '口播工作室', order: 20, inject: () => ({ settings }),
   }, GrokSettings));
+  ctx.slots.inject('settings.section.icon', () => ctx.slots.register({ name: 'settings.section.icon', id: 'dsh-koubo' }, StudioIcon));
 }
